@@ -1,0 +1,38 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Database to store service providers and their availability
+service_providers = [
+    {"id": 1, "name": "TowMate1", "location": "New York", "available": True},
+    {"id": 2, "name": "TowMate2", "location": "Los Angeles", "available": False},
+    {"id": 3, "name": "TowMate3", "location": "Chicago", "available": True},
+]
+
+# Endpoint to request roadside assistance
+@app.route('/request_assistance', methods=['POST'])
+def request_assistance():
+    data = request.json
+    location = data.get('location')
+    # Logic to find available service providers near the location
+    available_providers = [provider for provider in service_providers if provider['available']]
+    if available_providers:
+        selected_provider = available_providers[0]  # For simplicity, just select the first available provider
+        # Logic to notify selected_provider about the request and handle the service request
+        return jsonify({"message": "Assistance requested. Provider {} is on the way.".format(selected_provider['name'])}), 200
+    else:
+        return jsonify({"message": "No service providers available at the moment. Please try again later."}), 404
+
+# Endpoint to update service provider availability
+@app.route('/update_availability/<int:provider_id>', methods=['PUT'])
+def update_availability(provider_id):
+    data = request.json
+    availability = data.get('availability')
+    for provider in service_providers:
+        if provider['id'] == provider_id:
+            provider['available'] = availability
+            return jsonify({"message": "Availability updated successfully."}), 200
+    return jsonify({"message": "Provider not found."}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True)
